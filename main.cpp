@@ -1,22 +1,37 @@
 #include <algorithm>
 #include <iostream>
 #include <list>
+#include <ostream>
 #include <vector>
 
 // Печать
-template <typename T>
-void Print(const std::vector<T>& v) {
-  for (const T& t : v)
-    std::cout << t << " ";
-  std::cout << "\n";
+template <typename T, template <typename ELEM, typename ALLOC = std::allocator<T>> class Cont>
+std::ostream& operator<<(std::ostream& out, const Cont<T>& conteiner) {
+  for (auto& t : conteiner) {
+    out << t << " ";
+  }
+  out << "\n";
+  return out;
 }
 
-template <typename T>
-void Print(const std::list<T>& v) {
-  for (const T& t : v)
-    std::cout << t << " ";
-  std::cout << "\n";
+template <
+    typename T,
+    template <typename ELEM, typename ALLOC = std::allocator<std::pair<T, T>>> class Cont>
+std::ostream& operator<<(std::ostream& out, const Cont<std::pair<T, T>>& conteiner) {
+  for (auto& [f, s] : conteiner) {
+    out << "[ " << f << " , " << s << " ] ";
+  }
+  out << "\n";
+  return out;
 }
+
+template <typename Cont>
+void Print(std::string comment, std::string name_cont, Cont con) {
+  std::cout << comment << " name conteiner - " << name_cont << " : ";
+  std::cout << con << "\n";
+}
+
+#define Printered(text, x) Print(text, #x, x);
 
 // Рандом у нас идет от 0 и до 50 , чтоб глаза не мазолить
 int random() {
@@ -30,7 +45,7 @@ bool correct(size_t x, const std::vector<int>& v) {
 #define MessErrRangeV(x) \
   std::cout << "Invalid " << #x << " = " << x << " out of range std::vector<int> v\n";
 
-// Перемещение элементов с конца вектора в лист
+// Перемещение элементов вектора с конца в лист
 template <typename T>
 std::list<T> VectorMoveList(std::vector<T>& v, size_t ln) {
   std::list<T> list;
@@ -42,7 +57,7 @@ std::list<T> VectorMoveList(std::vector<T>& v, size_t ln) {
 template <typename T>
 std::vector<std::pair<T, T>> UnionPair(const std::vector<T>& v_min, const std::vector<T>& v_max) {
   std::vector<std::pair<int, int>> v4;
-  v4.resize(v_min.size());
+  //v4.resize(v_min.size());
   std::transform(
       v_min.begin(),
       v_min.end(),
@@ -69,18 +84,14 @@ enter_n:
   v.resize(n, 0);
   std::generate(v.begin(), v.end(), random);  // забиваем его рандомным числом
 
-  std::cout << "1. Vector v: ";
-  Print(v);
-  std::cout << "\n";
+  Printered("1. Vector", v);
 
   // копируем из одного вектора в другой или 200 элементов или от b до e
   // 2.1
 
   std::vector<int> v2(v.rbegin(), v.rbegin() + 200);  // тк условие разворот вектора не
                                                       // запрещено
-  std::cout << "2.1. Vector v2(200): ";
-  Print(v2);
-  std::cout << "\n";
+  Printered("2.1. Vector(size = 200)", v2);
 
   // 2.2
   size_t b, e;
@@ -104,66 +115,48 @@ enter_e:
     std::swap(b, e);
 
   std::vector<int> v2_1(v.begin() + b, v.begin() + e);
-  std::cout << "2.2. Vector v2_1: ";
-  Print(v2_1);
-  std::cout << "\n";
+  Printered("2.2. Vector", v2_1);
 
   // 3.	Сформировать список list1, поместив в него первые n (от 20 до 50) наибольших элементов
   // вектора v1 (указанные элементы должны быть отсортированы до помещения их в список).
   std::sort(v.begin(), v.end());  // от меньшего к большему
-  std::cout << "Sorted vector v: ";
-  Print(v);
-  std::cout << "\n";
+  Printered("Sorted vector", v);
 
   // рандомное число для list 1
   size_t ln = 20 + std::rand() % 31;
   std::cout << "list1.size =" << ln << "\n ";
   std::list<int> list1(VectorMoveList(v, ln));
-  std::cout << "3. list1 : ";
-  Print(list1);
-  std::cout << "\n";
+  Printered("3.", list1);
 
   // 4.	Сформировать список list2, поместив в него последние n (от 20 до 50) наименьших элементов
   // вектора v2, порядок элементов не важен.
   std::sort(v2.begin(), v2.end(), [](int l, int r) { return l > r; });  // от большего к меньшему
-  std::cout << "Sorted vector v2: ";
-  Print(v2);
-  std::cout << "\n";
+  Printered("Sorted vector", v2);
 
   // рандомное число для list 2
   ln = 20 + std::rand() % 31;
   std::cout << "4. list2.size =" << ln << "\n ";
   std::list<int> list2(VectorMoveList(v2, ln));
-  std::cout << "list2 : ";
-  Print(list2);
-  std::cout << "\n";
+  Printered("", list2);
 
   // 5.	Удалить из векторов v1 и v2 перемещенные элементы. Скорректируйте размеры векторов после
   // удаления из них элементов.
-  std::cout << "5.1. v -> list1 : ";
-  Print(v);
-  std::cout << "\n";
+  Printered("5.1. v -> list1", v);
 
-  std::cout << "5.2. v2 -> list2 : ";
-  Print(v2);
-  std::cout << "\n";
+  Printered("5.2. v2 -> list2", v2);
 
   // 6.	Для списка list1 найти элемент со средним значением. Перегруппировать элементы списка так,
   // чтобы в начале оказались все элементы, большие среднего значения.
 
   std::reverse(list1.begin(), list1.end());
-  std::cout << "6. list1 reverse : ";
-  Print(list1);
-  std::cout << "\n";
+  Printered("6. reverse", list1);
 
   // 7.	Удалите из списка list2 все нечётные элементы (или используйте другой критерий,
   // который однозначно делит экземпляры вашего класса на два непересекающихся множества).
 
   auto new_end = std::remove_if(list2.begin(), list2.end(), [](auto n) { return n % 2 != 0; });
   list2.erase(new_end, list2.end());
-  std::cout << "7. list2 del nechet : ";
-  Print(list2);
-  std::cout << "\n";
+  Printered("7. del nechet", list2);
 
   // 8. Создайте вектор v3 из элементов, которые присутствуют и в векторе v1 и в векторе v2.
   std::vector<int> v3(v.begin(), v.end());
@@ -171,9 +164,7 @@ enter_e:
   v3.insert(v3.cend(), v.cbegin(), v.cend());
   v3.insert(v3.cend(), v2.cbegin(), v2.cend());
 
-  std::cout << "8. Vector v3 : ";
-  Print(v3);
-  std::cout << "\n";
+  Printered("8. Vector", v3);
 
   // 9. Для списков list1 и list2 из списка с большим числом элементов удалите первые n так, чтобы
   // оба списка имели бы одинаковый размер. Сформируйте из них список list3, который будет хранить
@@ -195,26 +186,17 @@ enter_e:
   );
 
   // вывод результатов
-  std::cout << "9. list3 : ";
-  for (auto& [a, b] : list3) {
-    std::cout << "[ " << a << " , " << b << " ] ";
-  }
-  std::cout << "\n";
+  Printered("9. ", list3);
 
   // 10. Решите предыдущую задачу для векторов v1 и v2 без предварительного приведения векторов к
   // одному размеру. Пар с пустыми значениями быть не должно.
 
-  std::vector<std::pair<int, int>> v4;
+  std::vector<std::pair<int, int>> v4 = v.size() < v2.size() ? UnionPair(v, v2) : UnionPair(v2, v);
 
-  v.size() < v2.size() ? UnionPair(v,v2) : UnionPair(v2,v);
+  // вывод результатов
+  Printered("10. ", v4);
 
-      // вывод результатов
-      std::cout
-      << "10. v4 : ";
-  for (auto& [a, b] : list3) {
-    std::cout << "[ " << a << " , " << b << " ] ";
-  }
-  std::cout << "\n";
+  std::cout << "Success !!!";
 
   return 0;
 }
