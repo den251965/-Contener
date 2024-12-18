@@ -57,7 +57,7 @@ std::list<T> VectorMoveList(std::vector<T>& v, size_t ln) {
 template <typename T>
 std::vector<std::pair<T, T>> UnionPair(const std::vector<T>& v_min, const std::vector<T>& v_max) {
   std::vector<std::pair<int, int>> v4;
-  //v4.resize(v_min.size());
+  v4.reserve(v_min.size());
   std::transform(
       v_min.begin(),
       v_min.end(),
